@@ -1,8 +1,468 @@
-html, body, #root {
-  height: 100%;
-  margin: 0;
+/* ── Reset ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body {
+  background: #E9D8B9;
+  color: #2C1810;
+  font-family: 'Caveat', cursive;
+  overflow-x: hidden;
 }
 
-body {
+/* ── App shell ───────────────────────────────────────────────────────── */
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+.view-wrapper {
+  flex: 1;
+  animation: viewIn 0.22s ease both;
+}
+
+/* ── Navbar ──────────────────────────────────────────────────────────── */
+.navbar {
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.navbar__brand {
+  font-family: 'Caveat', cursive;
+  font-size: 21px;
+  font-weight: 700;
+  color: #E9D8B9;
+  cursor: pointer;
+  letter-spacing: -0.5px;
+  user-select: none;
+}
+
+.navbar__links { display: flex; gap: 22px; }
+
+.navbar__link {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.9px;
+  background: none;
+  border: none;
+  color: rgba(233, 216, 185, 0.45);
+  cursor: pointer;
+  padding: 0;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.navbar__link:hover { color: rgba(233, 216, 185, 0.75); }
+
+.navbar__link--active {
+  color: #E9D8B9;
+  border-bottom-color: #E9D8B9;
+}
+
+/* ── Page content (feed / friends) ──────────────────────────────────── */
+.page-content {
+  background: #E9D8B9;
+  min-height: calc(100vh - 44px);
+  padding: 18px;
+}
+
+/* ── Photo grid — 5 columns ──────────────────────────────────────────── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+/* ── Polaroid card ───────────────────────────────────────────────────── */
+.polaroid {
   background: #fff;
+  padding: 7px 7px 36px;
+  cursor: pointer;
+  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.13);
+  animation: cardIn 0.38s ease both;
+  animation-delay: calc(var(--i, 0) * 38ms);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.polaroid:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  position: relative;
+}
+
+.polaroid__film {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: #111;
+}
+
+.polaroid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.06) saturate(0.82) sepia(0.1);
+}
+
+.polaroid__grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 180px;
+  opacity: 0.10;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.polaroid__leak {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.polaroid__strip { /* white space at the bottom — no label in grid */ }
+
+/* ── Zoom page ───────────────────────────────────────────────────────── */
+.zoom-page {
+  background: #E9D8B9;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: viewIn 0.2s ease both;
+}
+
+.zoom-polaroid {
+  background: #fff;
+  padding: 12px 12px 56px;
+  width: min(78vw, 390px);
+  box-shadow: 4px 8px 40px rgba(0, 0, 0, 0.18);
+  cursor: default;
+  animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.zoom-polaroid__film {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: #111;
+}
+
+.zoom-polaroid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.06) saturate(0.82) sepia(0.1);
+}
+
+.zoom-polaroid__strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 14px;
+}
+
+.zoom-polaroid__username {
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #2C1810;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.zoom-polaroid__username:hover {
+  opacity: 0.55;
+  text-decoration: underline;
+}
+
+/* ── Album / Profile page ────────────────────────────────────────────── */
+.album-page {
+  background: #1a1a1a;
+  min-height: 100vh;
+  padding: 24px 22px 60px;
+  animation: viewIn 0.22s ease both;
+}
+
+.album-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.album-title {
+  font-family: 'Caveat', cursive;
+  font-size: 30px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.album-stats {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 5px;
+  letter-spacing: 0.3px;
+}
+
+.roll-with-btn {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  background: #1D2952;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.roll-with-btn:hover {
+  background: #2A3A7A;
+  transform: scale(1.05);
+}
+
+/* ── Album grid — 4 columns ──────────────────────────────────────────── */
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.album-empty {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.35);
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 0;
+}
+
+/* ── Landing (split-screen) ──────────────────────────────────────────── */
+.landing {
+  display: flex;
+  min-height: 100vh;
+}
+
+.landing__left {
+  width: 44%;
+  background: #1D2952;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+}
+
+.landing__right {
+  width: 56%;
+  background: #E9D8B9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 68px;
+}
+
+.landing__brand {
+  font-family: 'Caveat', cursive;
+  font-size: 100px;
+  font-weight: 700;
+  color: #2C1810;
+  line-height: 1;
+  letter-spacing: -3px;
+  margin-bottom: 8px;
+}
+
+.landing__hero-light {
+  font-family: 'Caveat', cursive;
+  font-size: 66px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.1;
+}
+
+.landing__hero-dark {
+  font-family: 'Caveat', cursive;
+  font-size: 66px;
+  font-weight: 700;
+  color: #1D2952;
+  line-height: 1.1;
+}
+
+/* ── Auth card ───────────────────────────────────────────────────────── */
+.auth-card {
+  background: #EDE3CC;
+  border-radius: 16px;
+  padding: 32px 32px 36px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.auth-card--shake {
+  animation: shake 0.45s ease both;
+}
+
+.auth-card__tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid rgba(44, 24, 16, 0.14);
+  margin-bottom: 28px;
+}
+
+.auth-tab {
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  background: none;
+  border: none;
+  color: rgba(44, 24, 16, 0.38);
+  cursor: pointer;
+  padding: 0 0 10px;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.auth-tab--active {
+  color: #1D2952;
+  border-bottom-color: #1D2952;
+}
+
+.auth-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-label {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2C1810;
+  letter-spacing: 0.2px;
+}
+
+.auth-input {
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  padding: 7px 10px;
+  background: #D4CBBA;
+  border: none;
+  border-radius: 3px;
+  color: #2C1810;
+  outline: none;
+  transition: background 0.15s;
+}
+
+.auth-input:focus { background: #C6BDAB; }
+
+.auth-error {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  color: #B83A20;
+  letter-spacing: 0.2px;
+}
+
+.auth-submit {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  background: #D4CBBA;
+  border: none;
+  border-radius: 3px;
+  color: #2C1810;
+  padding: 9px 28px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: #C2B8A5;
+  transform: scale(1.02);
+}
+
+.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  color: rgba(44, 24, 16, 0.3);
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(44, 24, 16, 0.15);
+}
+
+.demo-btn {
+  display: block;
+  width: 100%;
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1D2952;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px 0;
+  transition: opacity 0.15s;
+  letter-spacing: 0.2px;
+}
+
+.demo-btn:hover { opacity: 0.6; }
+
+/* ── Keyframes ───────────────────────────────────────────────────────── */
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.72); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  18%       { transform: translateX(-7px); }
+  36%       { transform: translateX(7px); }
+  54%       { transform: translateX(-5px); }
+  72%       { transform: translateX(5px); }
+  90%       { transform: translateX(-2px); }
 }
