@@ -2,7 +2,6 @@ const express = require("express");
 const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
 const { spawn } = require("child_process");
-const exifr = require("exifr");
 const path = require("path");
 const fs = require("fs");
 const dotenv = require("dotenv");
@@ -21,6 +20,16 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
+// Returns the coming Sunday at 23:59:59 — the weekly drop time
+function getWeeklyRevealTime() {
+  const now = new Date();
+  const daysUntilSunday = now.getDay() === 0 ? 0 : 7 - now.getDay();
+  const reveal = new Date(now);
+  reveal.setDate(now.getDate() + daysUntilSunday);
+  reveal.setHours(23, 59, 59, 999);
+  return reveal;
+}
+
 // POST /api/photos/upload
 router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) => {
   const userId = req.user.id;
@@ -29,46 +38,6 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
   if (!file) return res.status(400).json({ error: "No photo provided" });
 
   try {
-    // EXIF timestamp check — must be taken within 5 minutes
-    const exif = await exifr.parse(file.path);
-    if (exif?.DateTimeOriginal) {
-      const diffMinutes = (new Date() - new Date(exif.DateTimeOriginal)) / 60000;
-      if (diffMinutes > 5) {
-        fs.unlinkSync(file.path);
-        return res.status(400).json({ error: "Photo must be taken within the last 5 minutes" });
-      }
-    }
-
-    // Daily + weekly shot limits (max 3/day, 10/week)
-    const dayStart = new Date();
-    dayStart.setHours(0, 0, 0, 0);
-
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    weekStart.setHours(0, 0, 0, 0);
-
-    const { count: dayCount } = await supabase
-      .from("photos")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", dayStart.toISOString());
-
-    if (dayCount >= 3) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ error: "You have used all 3 shots today" });
-    }
-
-    const { count: weekCount } = await supabase
-      .from("photos")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", weekStart.toISOString());
-
-    if (weekCount >= 10) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ error: "You have used all 10 shots this week" });
-    }
-
     // Run Python Polaroid processor
     const outputPath = `uploads/processed_${Date.now()}.jpg`;
     await new Promise((resolve, reject) => {
@@ -93,8 +62,8 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
 
     const { data: urlData } = supabase.storage.from("photos").getPublicUrl(fileName);
 
-    // 1 hour developing delay
-    const revealAt = new Date(Date.now() + 60 * 60 * 1000);
+    // Weekly drop — all photos develop together on Sunday at 23:59:59
+    const revealAt = getWeeklyRevealTime();
 
     const { data: photo, error: dbError } = await supabase
       .from("photos")
@@ -112,64 +81,65 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
     fs.unlinkSync(file.path);
     fs.unlinkSync(outputPath);
 
+    // Count shots taken this week (for the blind counter)
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
+    weekStart.setHours(0, 0, 0, 0);
+
+    const { count } = await supabase
+      .from("photos")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", weekStart.toISOString());
+
     res.status(201).json({
-      message: "Photo is developing!",
+      message: "Shot taken! Develops Sunday at midnight.",
       photo_id: photo.id,
       reveal_at: revealAt,
-      daily_shots_remaining: 3 - (dayCount + 1),
-      weekly_shots_remaining: 10 - (weekCount + 1),
-      shots_remaining: Math.min(3 - (dayCount + 1), 10 - (weekCount + 1)),
+      shots_this_week: count,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/photos/feed
+// GET /api/photos/feed — only ready photos, randomized
 router.get("/feed", authMiddleware, async (req, res) => {
   try {
     const { data: photos, error } = await supabase
       .from("photos")
-      .select("id, storage_url, status, reveal_at, created_at, users(username)")
+      .select("id, storage_url, status, reveal_at, created_at, users(id, username)")
       .eq("status", "ready")
-      .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(100);
 
     if (error) throw error;
-    res.json({ photos });
+
+    // Randomize order — no popularity contest
+    const shuffled = [...(photos || [])].sort(() => Math.random() - 0.5);
+    res.json({ photos: shuffled });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/photos/my-shots
+// GET /api/photos/my-shots — blind counter: how many shots taken this week
 router.get("/my-shots", authMiddleware, async (req, res) => {
   try {
-    const dayStart = new Date();
-    dayStart.setHours(0, 0, 0, 0);
-
     const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
     weekStart.setHours(0, 0, 0, 0);
 
-    const { count: dayCount } = await supabase
-      .from("photos")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", req.user.id)
-      .gte("created_at", dayStart.toISOString());
-
-    const { count: weekCount } = await supabase
+    const { count } = await supabase
       .from("photos")
       .select("*", { count: "exact", head: true })
       .eq("user_id", req.user.id)
       .gte("created_at", weekStart.toISOString());
 
+    const revealAt = getWeeklyRevealTime();
+
     res.json({
-      daily_shots_used: dayCount,
-      daily_shots_remaining: 3 - dayCount,
-      weekly_shots_used: weekCount,
-      weekly_shots_remaining: 10 - weekCount,
-      shots_remaining: Math.min(3 - dayCount, 10 - weekCount),
+      shots_this_week: count,
+      next_drop: revealAt,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

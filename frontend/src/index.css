@@ -411,3 +411,30 @@ body {
   .strip, .leak--left, .leak--right, .leak--bottom { transform: none; }
 }
 
+/* Feed page */
+.feed { padding: 100px 6vw 60px; }
+.feed__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 2rem; margin-top: 2rem; }
+.feed__status { text-align: center; color: var(--muted, #888); padding: 4rem 0; }
+.feed__status--error { color: #e07070; }
+.feed__empty { text-align: center; padding: 6rem 0; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+.nav__shots { font-size: 0.85rem; color: var(--accent, #c7773b); letter-spacing: 0.04em; }
+
+/* Polaroid cards */
+.polaroid { background: #f5f0e6; padding: 12px 12px 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 0; position: relative; }
+.polaroid__img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.polaroid__caption { font-family: 'Special Elite', cursive; font-size: 0.8rem; color: #4a3a2a; padding: 8px 4px 0; }
+.polaroid__report { position: absolute; bottom: 8px; right: 10px; background: none; border: none; font-size: 0.7rem; color: #aaa; cursor: pointer; }
+.polaroid__report:hover { color: #e07070; }
+.polaroid__reported { position: absolute; bottom: 8px; right: 10px; font-size: 0.7rem; color: #aaa; }
+.polaroid--developing { background: #1a1614; border: 1px solid #2a2220; }
+.polaroid__developing-inner { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; }
+.polaroid__timer { font-size: 1.4rem; color: var(--accent, #c7773b); font-family: 'Special Elite', cursive; letter-spacing: 0.05em; }
+.polaroid__label { font-size: 0.75rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Upload page */
+.upload__label { display: block; cursor: pointer; border: 2px dashed #3a3028; border-radius: 4px; overflow: hidden; }
+.upload__placeholder { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; color: #666; font-size: 0.9rem; background: #1a1614; }
+.upload__placeholder:hover { background: #221e1b; color: var(--accent, #c7773b); }
+.upload__preview { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.upload__success { color: #7ec8a0; font-size: 0.9rem; line-height: 1.5; }
+

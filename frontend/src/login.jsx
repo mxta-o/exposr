@@ -76,11 +76,34 @@ function LoginApp() {
     return nextErrors;
   };
 
-  const onSubmit = (event) => {
+  const [loading, setLoading] = React.useState(false);
+
+  const onSubmit = async (event) => {
     event.preventDefault();
     setSubmitted(true);
     const nextErrors = validate();
     setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setLoading(true);
+    try {
+      let data;
+      if (mode === 'login') {
+        data = await ExposrAPI.login(form.email, form.password);
+      } else {
+        data = await ExposrAPI.signup(form.username, form.email, form.password);
+      }
+      if (data.error) {
+        setErrors({ api: data.error });
+      } else {
+        ExposrAPI.setAuth(data.token, data.user);
+        window.location.href = '/public/feed.html';
+      }
+    } catch {
+      setErrors({ api: 'Could not connect to server. Is the backend running?' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const strength = getStrength(form.password);
@@ -194,8 +217,9 @@ function LoginApp() {
               </label>
             )}
 
-            <button type="submit" className="btn btn--primary">
-              {mode === 'login' ? 'Log In' : 'Create account'}
+            {errors.api && <span className="field-error">{errors.api}</span>}
+            <button type="submit" className="btn btn--primary" disabled={loading}>
+              {loading ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Create account'}
             </button>
           </form>
 
