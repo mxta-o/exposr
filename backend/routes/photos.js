@@ -39,18 +39,32 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
       }
     }
 
-    // Weekly shot limit check (10 per week)
+    // Daily + weekly shot limits (max 3/day, 10/week)
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     weekStart.setHours(0, 0, 0, 0);
 
-    const { count } = await supabase
+    const { count: dayCount } = await supabase
+      .from("photos")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", dayStart.toISOString());
+
+    if (dayCount >= 3) {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({ error: "You have used all 3 shots today" });
+    }
+
+    const { count: weekCount } = await supabase
       .from("photos")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .gte("created_at", weekStart.toISOString());
 
-    if (count >= 10) {
+    if (weekCount >= 10) {
       fs.unlinkSync(file.path);
       return res.status(400).json({ error: "You have used all 10 shots this week" });
     }
@@ -102,7 +116,9 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
       message: "Photo is developing!",
       photo_id: photo.id,
       reveal_at: revealAt,
-      shots_remaining: 10 - (count + 1),
+      daily_shots_remaining: 3 - (dayCount + 1),
+      weekly_shots_remaining: 10 - (weekCount + 1),
+      shots_remaining: Math.min(3 - (dayCount + 1), 10 - (weekCount + 1)),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -129,17 +145,32 @@ router.get("/feed", authMiddleware, async (req, res) => {
 // GET /api/photos/my-shots
 router.get("/my-shots", authMiddleware, async (req, res) => {
   try {
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     weekStart.setHours(0, 0, 0, 0);
 
-    const { count } = await supabase
+    const { count: dayCount } = await supabase
+      .from("photos")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", req.user.id)
+      .gte("created_at", dayStart.toISOString());
+
+    const { count: weekCount } = await supabase
       .from("photos")
       .select("*", { count: "exact", head: true })
       .eq("user_id", req.user.id)
       .gte("created_at", weekStart.toISOString());
 
-    res.json({ shots_used: count, shots_remaining: 10 - count });
+    res.json({
+      daily_shots_used: dayCount,
+      daily_shots_remaining: 3 - dayCount,
+      weekly_shots_used: weekCount,
+      weekly_shots_remaining: 10 - weekCount,
+      shots_remaining: Math.min(3 - dayCount, 10 - weekCount),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
