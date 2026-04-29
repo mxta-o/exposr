@@ -1,0 +1,50 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #fff;
+}
+
+.page {
+  color: #0f172a;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 28px;
+  border-bottom: 1px solid #eef2ff;
+}
+
+.nav__brand {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.nav__links a { margin-left: 18px; color: #334155; text-decoration: none; }
+
+.hero {
+  display: grid;
+  place-items: center;
+  padding: 72px 20px;
+  background: linear-gradient(180deg,#f8fafc, #fff);
+}
+
+.hero__title { font-size: 2rem; margin: 0 0 12px; }
+.hero__subtitle { color: #475569; margin: 0 0 18px; }
+
+.btn {
+  background: #2563eb; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none;
+}
+
+.features { padding: 40px 20px; max-width: 900px; margin: 0 auto; }
+.features ul { list-style: disc; margin-left: 20px; }
+
+.demo { padding: 30px 20px; background: #fbfbff; text-align: center; }
+
+.site-footer { padding: 24px 20px; text-align: center; color: #94a3b8; }
+

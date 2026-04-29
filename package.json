@@ -3,16 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "serve public -l 3000",
-    "dev": "serve public -l 3000 --single",
+    "start": "live-server --port=3000 --open=public/index.html --mount=/src:src --mount=/vendor:public/vendor --quiet",
+    "dev": "live-server --port=3000 --open=public/index.html --mount=/src:src --mount=/vendor:public/vendor",
+    "postinstall": "node scripts/copy-vendor.js",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write ."
   },
   "dependencies": {
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@babel/standalone": "^7.26.2",
+    "live-server": "^1.2.2",
     "serve": "^14.0.0"
   }
 }
