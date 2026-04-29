@@ -1,6 +1,7 @@
 /* global React, ReactDOM */
 
 function LoginApp() {
+  const API_BASE = 'http://localhost:3001';
   const [mode, setMode] = React.useState('login');
   const [form, setForm] = React.useState({
     email: '',
@@ -9,11 +10,14 @@ function LoginApp() {
     confirmPassword: '',
   });
   const [errors, setErrors] = React.useState({});
+  const [formError, setFormError] = React.useState('');
   const [submitted, setSubmitted] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const onChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (formError) setFormError('');
     if (errors[name]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -76,11 +80,45 @@ function LoginApp() {
     return nextErrors;
   };
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     setSubmitted(true);
     const nextErrors = validate();
     setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setIsSubmitting(true);
+    setFormError('');
+
+    try {
+      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+      const payload = mode === 'login'
+        ? { email: form.email, password: form.password }
+        : { username: form.username, email: form.email, password: form.password };
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFormError(data.error || 'Unable to authenticate. Please try again.');
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem('exposr_token', data.token);
+      }
+
+      window.location.href = '/public/dashboard.html';
+    } catch (error) {
+      setFormError(error.message || 'Unable to reach server.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const strength = getStrength(form.password);
@@ -90,6 +128,7 @@ function LoginApp() {
     setMode(nextMode);
     setSubmitted(false);
     setErrors({});
+    setFormError('');
   };
 
   return (
@@ -194,8 +233,11 @@ function LoginApp() {
               </label>
             )}
 
-            <button type="submit" className="btn btn--primary">
-              {mode === 'login' ? 'Log In' : 'Create account'}
+            {formError && <div className="field-error">{formError}</div>}
+            <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'Connecting...'
+                : mode === 'login' ? 'Log In' : 'Create account'}
             </button>
           </form>
 
