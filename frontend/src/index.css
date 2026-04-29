@@ -177,8 +177,9 @@ body {
 }
 
 .btn--ghost {
-  border: 1px solid rgba(242, 234, 223, 0.3);
+  border: 1px solid rgba(199, 119, 59, 0.4);
   color: var(--text);
+  background: rgba(26, 20, 16, 0.85);
 }
 
 .hero__stack {
@@ -292,6 +293,105 @@ body {
 
 .cta h2 { font-size: 2.4rem; margin-bottom: 8px; }
 .cta p { color: var(--muted); margin-bottom: 20px; }
+
+.login {
+  padding: 80px 10vw 100px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.login__card {
+  width: min(460px, 92vw);
+  padding: 28px;
+  background: rgba(16, 12, 10, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.login__card h2 {
+  margin-top: 0;
+  font-size: 2rem;
+}
+
+.login__form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.login__form label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.login__form input {
+  background: rgba(8, 6, 5, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1rem;
+}
+
+.login__form input:focus {
+  outline: 1px solid rgba(199, 119, 59, 0.6);
+}
+
+.input-error {
+  border-color: rgba(199, 119, 59, 0.8);
+}
+
+.field-error {
+  color: #e8b08a;
+  font-size: 0.85rem;
+}
+
+.login__footer {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.password-meter {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.meter {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.meter__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #7a3e1d, #c7773b, #f2c28f);
+}
+
+.meter__label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tips {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
 
 .site-footer {
   padding: 24px 20px 40px;

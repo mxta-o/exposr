@@ -185,8 +185,8 @@ function App() {
         <h2>Enter Exposr</h2>
         <p>Join the roll and keep it real.</p>
         <div className="hero__actions">
-          <a className="btn btn--primary" href="#">Launch App</a>
-          <a className="btn btn--ghost" href="#">Enter Exposr</a>
+          <a className="btn btn--primary" href="/public/login.html">Launch App</a>
+          <a className="btn btn--ghost" href="/public/login.html">Enter Exposr</a>
         </div>
       </section>
 
