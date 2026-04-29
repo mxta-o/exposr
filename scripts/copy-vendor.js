@@ -4,6 +4,7 @@ const path = require('path');
 const reactRoot = path.dirname(require.resolve('react/package.json'));
 const reactDomRoot = path.dirname(require.resolve('react-dom/package.json'));
 const babelRoot = path.dirname(require.resolve('@babel/standalone/package.json'));
+const gsapRoot = path.dirname(require.resolve('gsap/package.json'));
 
 const files = [
   {
@@ -17,6 +18,10 @@ const files = [
   {
     from: path.join(babelRoot, 'babel.min.js'),
     to: path.join('public', 'vendor', 'babel.min.js'),
+  },
+  {
+    from: path.join(gsapRoot, 'dist', 'gsap.min.js'),
+    to: path.join('public', 'vendor', 'gsap.min.js'),
   },
 ];
 

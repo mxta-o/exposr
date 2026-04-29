@@ -17,6 +17,64 @@ function App() {
 
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+
+    const gsapInstance = window.gsap;
+    if (gsapInstance) {
+      gsapInstance.from('.hero__copy > *', {
+        y: 20,
+        opacity: 0,
+        duration: 1.1,
+        ease: 'power2.out',
+        stagger: 0.08,
+      });
+
+      gsapInstance.from('.polaroid', {
+        y: 30,
+        opacity: 0,
+        duration: 1.3,
+        ease: 'power3.out',
+        stagger: 0.12,
+        delay: 0.2,
+      });
+
+      gsapInstance.to('.polaroid--one', {
+        y: -10,
+        duration: 3.8,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+      gsapInstance.to('.polaroid--two', {
+        y: 12,
+        duration: 4.4,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+      gsapInstance.to('.polaroid--three', {
+        y: -8,
+        duration: 4.1,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+
+      gsapInstance.to('.leak--left', {
+        x: 20,
+        duration: 6,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+      gsapInstance.to('.leak--right', {
+        x: -18,
+        duration: 7,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+    }
+
     return () => {
       window.removeEventListener('scroll', onScroll);
       if (rafId) window.cancelAnimationFrame(rafId);
