@@ -4,7 +4,7 @@ polaroid photo booth app
 
 ## Local setup (recommended)
 
-Install Node (use nvm) and then run the dependency installs below from the project root.
+Install Node (use nvm) and then run the dependency installs below from the frontend folder.
 
 Install Node LTS via nvm:
 
@@ -19,6 +19,9 @@ nvm use --lts
 Install dependencies and start the dev server (no bundler):
 
 ```bash
+# from the frontend/ folder
+cd frontend
+
 # install runtime + dev deps listed in package.json
 npm install
 
@@ -32,6 +35,7 @@ Notes:
 - Lint and format commands still available:
 
 ```bash
+cd frontend
 npm run lint
 npm run format
 ```
