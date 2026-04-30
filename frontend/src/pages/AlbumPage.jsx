@@ -1,6 +1,6 @@
 /* global React */
 
-function AlbumPage({ user, feed, isOwn, onRollWith }) {
+function AlbumPage({ user, feed, isOwn, isRolled, onToggleRoll }) {
   const { PolaroidCard } = window;
   const username = user.username;
   const photos = feed.filter((p) => p.username === username);
@@ -19,7 +19,9 @@ function AlbumPage({ user, feed, isOwn, onRollWith }) {
           </div>
         </div>
         {!isOwn && (
-          <button className="roll-with-btn" onClick={onRollWith}>+ roll with</button>
+          <button className="roll-with-btn" onClick={onToggleRoll}>
+            {isRolled ? 'rolling' : '+ roll with'}
+          </button>
         )}
       </div>
       <div className="photo-grid photo-grid--4 photo-grid--dark">

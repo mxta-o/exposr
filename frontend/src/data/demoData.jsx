@@ -1,4 +1,4 @@
-const DEMO_USER = { username: 'arianacruz', email: 'demo@exposr.app' };
+const DEMO_USER = { id: 'demo', username: 'arianacruz', email: 'demo@exposr.app' };
 
 const LIGHT_LEAKS = [
   'radial-gradient(ellipse at 96% 4%,  rgba(255,158,55,0.28) 0%, transparent 52%)',

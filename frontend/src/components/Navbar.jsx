@@ -1,6 +1,6 @@
 /* global React */
 
-function Navbar({ view, onNav, username }) {
+function Navbar({ view, onNav, username, onLogout }) {
   return (
     <nav className="navbar">
       <span className="navbar__brand" onClick={() => onNav('feed')}>exposr</span>
@@ -16,10 +16,8 @@ function Navbar({ view, onNav, username }) {
         ))}
       </div>
       <div className="navbar__user">
-        {view === 'shoot'
-          ? <span className="navbar__username">@{username}</span>
-          : <div className="navbar__avatar">{username[0].toUpperCase()}</div>
-        }
+        <span className="navbar__username">@{username}</span>
+        <button className="navbar__logout" onClick={onLogout}>log out</button>
       </div>
     </nav>
   );

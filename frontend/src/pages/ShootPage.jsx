@@ -37,7 +37,8 @@ function ShootPage() {
   const [weeklyShots, setWeeklyShots] = useState(0);
   const [developingPhotos, setDevelopingPhotos] = useState([]);
   const [previewUrl, setPreviewUrl] = useState('');
-  const [showRules, setShowRules] = useState(true);
+  const [showRules, setShowRules] = useState(false);
+  const [rulesKey, setRulesKey] = useState('exposr_rules_seen');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -82,6 +83,13 @@ function ShootPage() {
       return false;
     }
   };
+
+  useEffect(() => {
+    const userId = localStorage.getItem('exposr_user_id') || 'anon';
+    const key = `exposr_rules_seen_${userId}`;
+    setRulesKey(key);
+    setShowRules(!localStorage.getItem(key));
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('exposr_token');
@@ -178,7 +186,15 @@ function ShootPage() {
               <li>Uploads develop automatically and post on release.</li>
               <li>Safety checks may apply before release.</li>
             </ul>
-            <button className="rules-btn" onClick={() => setShowRules(false)}>Got it</button>
+            <button
+              className="rules-btn"
+              onClick={() => {
+                localStorage.setItem(rulesKey, '1');
+                setShowRules(false);
+              }}
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}
