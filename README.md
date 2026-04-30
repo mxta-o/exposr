@@ -40,3 +40,31 @@ npm run lint
 npm run format
 ```
 
+IN CASE IM SLEEPING/DEAD: 
+
+for actual test dev in terms of profile creations and whatnot, you need to run BOTH the frontend and the backend in separate terminals:
+
+(again, both of these need to be run in two terminals, one for frontend, one for backend)
+
+```bash
+# from the frontend/ folder
+cd frontend
+
+# install runtime + dev deps listed in package.json
+npm install
+
+# serve the `public/` folder on http://localhost:3000
+npm run start
+```
+
+```bash
+# from the backend/ folder
+cd backend
+
+# install runtime + dev deps listed in package.json
+npm install
+
+# serve the `public/` folder on http://localhost:3000
+npm run start
+```
+

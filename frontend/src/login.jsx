@@ -1,6 +1,7 @@
 /* global React, ReactDOM */
 
 function LoginApp() {
+  const API_BASE = 'http://localhost:3001';
   const [mode, setMode] = React.useState('login');
   const [form, setForm] = React.useState({
     email: '',
@@ -9,11 +10,14 @@ function LoginApp() {
     confirmPassword: '',
   });
   const [errors, setErrors] = React.useState({});
+  const [formError, setFormError] = React.useState('');
   const [submitted, setSubmitted] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const onChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (formError) setFormError('');
     if (errors[name]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -76,8 +80,6 @@ function LoginApp() {
     return nextErrors;
   };
 
-  const [loading, setLoading] = React.useState(false);
-
   const onSubmit = async (event) => {
     event.preventDefault();
     setSubmitted(true);
@@ -85,24 +87,37 @@ function LoginApp() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    setLoading(true);
+    setIsSubmitting(true);
+    setFormError('');
+
     try {
-      let data;
-      if (mode === 'login') {
-        data = await ExposrAPI.login(form.email, form.password);
-      } else {
-        data = await ExposrAPI.signup(form.username, form.email, form.password);
+      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+      const payload = mode === 'login'
+        ? { email: form.email, password: form.password }
+        : { username: form.username, email: form.email, password: form.password };
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFormError(data.error || 'Unable to authenticate. Please try again.');
+        return;
       }
-      if (data.error) {
-        setErrors({ api: data.error });
-      } else {
-        ExposrAPI.setAuth(data.token, data.user);
-        window.location.href = '/public/feed.html';
+
+      if (data.token) {
+        localStorage.setItem('exposr_token', data.token);
       }
-    } catch {
-      setErrors({ api: 'Could not connect to server. Is the backend running?' });
+
+      window.location.href = '/public/dashboard.html';
+    } catch (error) {
+      setFormError(error.message || 'Unable to reach server.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -113,6 +128,7 @@ function LoginApp() {
     setMode(nextMode);
     setSubmitted(false);
     setErrors({});
+    setFormError('');
   };
 
   return (
@@ -217,9 +233,11 @@ function LoginApp() {
               </label>
             )}
 
-            {errors.api && <span className="field-error">{errors.api}</span>}
-            <button type="submit" className="btn btn--primary" disabled={loading}>
-              {loading ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Create account'}
+            {formError && <div className="field-error">{formError}</div>}
+            <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'Connecting...'
+                : mode === 'login' ? 'Log In' : 'Create account'}
             </button>
           </form>
 

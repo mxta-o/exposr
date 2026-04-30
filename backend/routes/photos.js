@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
 const { spawn } = require("child_process");
+const exifr = require("exifr");
 const path = require("path");
 const fs = require("fs");
 const dotenv = require("dotenv");
@@ -12,7 +13,7 @@ dotenv.config();
 const router = express.Router();
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_KEY
 );
 
 const upload = multer({
@@ -38,6 +39,27 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
   if (!file) return res.status(400).json({ error: "No photo provided" });
 
   try {
+    // EXIF timestamp check — must be taken within 5 minutes
+    const exif = await exifr.parse(file.path);
+    if (exif?.DateTimeOriginal) {
+      const diffMinutes = (new Date() - new Date(exif.DateTimeOriginal)) / 60000;
+      if (diffMinutes > 5) {
+        fs.unlinkSync(file.path);
+        return res.status(400).json({ error: "Photo must be taken within the last 5 minutes" });
+      }
+    }
+
+    // Count shots this week for the blind counter (no limits enforced)
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
+    weekStart.setHours(0, 0, 0, 0);
+
+    const { count: weekCount } = await supabase
+      .from("photos")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", weekStart.toISOString());
+
     // Run Python Polaroid processor
     const outputPath = `uploads/processed_${Date.now()}.jpg`;
     await new Promise((resolve, reject) => {
@@ -81,22 +103,11 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
     fs.unlinkSync(file.path);
     fs.unlinkSync(outputPath);
 
-    // Count shots taken this week (for the blind counter)
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
-    weekStart.setHours(0, 0, 0, 0);
-
-    const { count } = await supabase
-      .from("photos")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", weekStart.toISOString());
-
     res.status(201).json({
       message: "Shot taken! Develops Sunday at midnight.",
       photo_id: photo.id,
       reveal_at: revealAt,
-      shots_this_week: count,
+      shots_this_week: weekCount + 1,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -141,6 +152,59 @@ router.get("/my-shots", authMiddleware, async (req, res) => {
       shots_this_week: count,
       next_drop: revealAt,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/photos/developing
+router.get("/developing", authMiddleware, async (req, res) => {
+  try {
+    const { data: photos, error } = await supabase
+      .from("photos")
+      .select("id, storage_url, status, reveal_at, created_at")
+      .eq("user_id", req.user.id)
+      .eq("status", "developing")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    res.json({ photos });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/photos/list/:userId
+router.get("/list/:userId", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // List files in the photos/{userId} folder
+    const { data: files, error } = await supabase
+      .storage
+      .from("photos")
+      .list(userId);
+
+    if (error) throw error;
+
+    // Generate public URLs for each file
+    const photos = files
+      .filter((f) => !f.name.startsWith('.'))
+      .map((file) => {
+        const publicUrl = supabase
+          .storage
+          .from("photos")
+          .getPublicUrl(`${userId}/${file.name}`);
+
+        return {
+          id: file.id,
+          name: file.name,
+          url: publicUrl.data.publicUrl,
+          updated_at: file.updated_at,
+        };
+      });
+
+    res.json(photos);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
