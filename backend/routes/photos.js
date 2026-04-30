@@ -179,4 +179,40 @@ router.get("/developing", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/photos/list/:userId
+router.get("/list/:userId", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // List files in the photos/{userId} folder
+    const { data: files, error } = await supabase
+      .storage
+      .from("photos")
+      .list(userId);
+
+    if (error) throw error;
+
+    // Generate public URLs for each file
+    const photos = files
+      .filter((f) => !f.name.startsWith('.'))
+      .map((file) => {
+        const publicUrl = supabase
+          .storage
+          .from("photos")
+          .getPublicUrl(`${userId}/${file.name}`);
+
+        return {
+          id: file.id,
+          name: file.name,
+          url: publicUrl.data.publicUrl,
+          updated_at: file.updated_at,
+        };
+      });
+
+    res.json(photos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -675,17 +675,7 @@ body {
 
 /* -- Album / Profile page --------------------------------------------------- */
 .album-page {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background: #EDE2C8;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='720'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='720' height='720' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E"),
-    radial-gradient(circle at 50% 42%, rgba(255,255,255,0.18), transparent 50%),
-    radial-gradient(circle at 50% 62%, rgba(121, 92, 44, 0.08), transparent 72%);
-  background-repeat: repeat, no-repeat, no-repeat;
-  background-size: 260px 260px, 100% 100%, 100% 100%;
-  background-blend-mode: multiply, normal, normal;
+  background: #1a1a1a;
   min-height: calc(100vh - 48px);
   padding: 28px 24px 60px;
   animation: viewIn 0.2s ease both;
