@@ -13,20 +13,28 @@ function FriendsPage({ feed, onPhotoClick }) {
   }, [feed]);
 
   return (
-    <div className="page-content">
-      {grouped.map(([username, photos]) => (
-        <div key={username} className="friend-section">
-          <p className="friend-section__name">@{username}</p>
-          <div className="photo-grid photo-grid--6">
-            {photos.map((photo, i) => (
-              <PolaroidCard key={photo.id} photo={photo} onClick={onPhotoClick} index={i} />
-            ))}
+    <div className="page-content friends-page">
+      {grouped.map(([username, photos], idx) => {
+        const stripPhotos = [...photos, ...photos];
+        return (
+          <div key={username} className="friend-strip">
+            <div className="friend-strip__header">
+              <span className="friend-strip__label">@{username}</span>
+            </div>
+            <div className="friend-strip__track-wrap">
+              <div
+                className={`friend-strip__track ${idx % 2 === 0 ? 'track-left' : 'track-right'}`}
+              >
+                {stripPhotos.map((photo, i) => (
+                  <div key={`${photo.id}-${i}`} className="friend-strip__frame">
+                    <PolaroidCard photo={photo} onClick={onPhotoClick} index={i} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
-      <div className="scroll-hint">
-        <div className="scroll-hint__btn">v</div>
-      </div>
+        );
+      })}
     </div>
   );
 }

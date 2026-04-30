@@ -44,7 +44,12 @@ function LandingPage({ apiBase, onSuccess, onDemo }) {
   };
 
   return (
-    <div className="landing">
+    <div className="landing landing--enter">
+      <div className="landing__ambient" aria-hidden="true">
+        <span className="landing__orb landing__orb--one" />
+        <span className="landing__orb landing__orb--two" />
+        <span className="landing__orb landing__orb--three" />
+      </div>
       <div className="landing__left">
         <div className="landing__copy">
           <h1 className="landing__brand">exposr</h1>

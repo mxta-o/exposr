@@ -16,7 +16,6 @@ const API = 'http://localhost:3001/api';
 function App() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState('feed');
-  const [prevView, setPrevView] = useState('feed');
   const [zoomedPhoto, setZoomedPhoto] = useState(null);
   const [profileUser, setProfileUser] = useState(null);
   const [rolls, setRolls] = useState(() => new Set());
@@ -40,14 +39,13 @@ function App() {
   }, []);
 
   const handlePhotoClick = (photo) => {
-    setPrevView(view);
     setZoomedPhoto(photo);
-    setView('zoom');
   };
 
   const handleProfileClick = (username) => {
     setProfileUser(username);
     setView('profile');
+    setZoomedPhoto(null);
   };
 
   const handleToggleRoll = (username) => {
@@ -59,15 +57,14 @@ function App() {
     });
   };
 
-  const handleBack = () => {
-    if (view === 'profile') { setView('zoom'); }
-    else { setView(prevView); setZoomedPhoto(null); }
-  };
-
   const handleNav = (v) => {
     setView(v);
     setZoomedPhoto(null);
     setProfileUser(null);
+  };
+
+  const handleZoomClose = () => {
+    setZoomedPhoto(null);
   };
 
   const handleLogout = () => {
@@ -96,22 +93,16 @@ function App() {
     );
   }
 
-  const hideNav = view === 'zoom';
-
   return (
-    <div className="app">
-      {!hideNav && (
+    <div className={`app${zoomedPhoto ? ' app--zoomed' : ''}`}>
+      <div className="app__content">
         <Navbar view={view} onNav={handleNav} username={user.username} onLogout={handleLogout} />
-      )}
-      <div key={view} className="view-wrapper">
+        <div key={view} className="view-wrapper">
         {view === 'shoot' && <ShootPage />}
         {view === 'feed' && <FeedPage feed={feed} onPhotoClick={handlePhotoClick} />}
         {view === 'friends' && <FriendsPage feed={feed} onPhotoClick={handlePhotoClick} />}
         {view === 'album' && (
           <AlbumPage user={user} feed={feed} isOwn={true} />
-        )}
-        {view === 'zoom' && zoomedPhoto && (
-          <ZoomPage photo={zoomedPhoto} onBack={handleBack} onProfileClick={handleProfileClick} />
         )}
         {view === 'profile' && profileUser && (
           <AlbumPage
@@ -122,7 +113,11 @@ function App() {
             onToggleRoll={() => handleToggleRoll(profileUser)}
           />
         )}
+        </div>
       </div>
+      {zoomedPhoto && (
+        <ZoomPage photo={zoomedPhoto} onClose={handleZoomClose} onProfileClick={handleProfileClick} />
+      )}
     </div>
   );
 }

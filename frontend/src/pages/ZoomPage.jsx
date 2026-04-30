@@ -1,15 +1,15 @@
 /* global React */
 const { useEffect } = React;
 
-function ZoomPage({ photo, onBack, onProfileClick }) {
+function ZoomPage({ photo, onClose, onProfileClick }) {
   useEffect(() => {
-    const fn = (e) => { if (e.key === 'Escape') onBack(); };
+    const fn = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', fn);
     return () => window.removeEventListener('keydown', fn);
-  }, [onBack]);
+  }, [onClose]);
 
   return (
-    <div className="zoom-page" onClick={onBack}>
+    <div className="zoom-overlay" onClick={onClose}>
       <div className="zoom-polaroid" onClick={(e) => e.stopPropagation()}>
         <div className="zoom-polaroid__film">
           <img className="zoom-polaroid__img" src={photo.url} alt="" />
