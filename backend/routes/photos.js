@@ -13,7 +13,7 @@ dotenv.config();
 const router = express.Router();
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_KEY
 );
 
 const upload = multer({
@@ -39,7 +39,7 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
       }
     }
 
-    // Daily + weekly shot limits (max 3/day, 10/week)
+    // Daily + weekly shot counts (no limits enforced)
     const dayStart = new Date();
     dayStart.setHours(0, 0, 0, 0);
 
@@ -53,21 +53,11 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
       .eq("user_id", userId)
       .gte("created_at", dayStart.toISOString());
 
-    if (dayCount >= 3) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ error: "You have used all 3 shots today" });
-    }
-
     const { count: weekCount } = await supabase
       .from("photos")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .gte("created_at", weekStart.toISOString());
-
-    if (weekCount >= 10) {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ error: "You have used all 10 shots this week" });
-    }
 
     // Run Python Polaroid processor
     const outputPath = `uploads/processed_${Date.now()}.jpg`;
@@ -116,9 +106,8 @@ router.post("/upload", authMiddleware, upload.single("photo"), async (req, res) 
       message: "Photo is developing!",
       photo_id: photo.id,
       reveal_at: revealAt,
-      daily_shots_remaining: 3 - (dayCount + 1),
-      weekly_shots_remaining: 10 - (weekCount + 1),
-      shots_remaining: Math.min(3 - (dayCount + 1), 10 - (weekCount + 1)),
+      daily_shots_used: dayCount + 1,
+      weekly_shots_used: weekCount + 1,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -166,11 +155,25 @@ router.get("/my-shots", authMiddleware, async (req, res) => {
 
     res.json({
       daily_shots_used: dayCount,
-      daily_shots_remaining: 3 - dayCount,
       weekly_shots_used: weekCount,
-      weekly_shots_remaining: 10 - weekCount,
-      shots_remaining: Math.min(3 - dayCount, 10 - weekCount),
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/photos/developing
+router.get("/developing", authMiddleware, async (req, res) => {
+  try {
+    const { data: photos, error } = await supabase
+      .from("photos")
+      .select("id, storage_url, status, reveal_at, created_at")
+      .eq("user_id", req.user.id)
+      .eq("status", "developing")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    res.json({ photos });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

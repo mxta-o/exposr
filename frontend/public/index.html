@@ -10,12 +10,20 @@
     <div id="root"></div>
 
     <!-- React + ReactDOM UMD builds and Babel (dev-only) -->
-    <script src="/vendor/react.development.js"></script>
-    <script src="/vendor/react-dom.development.js"></script>
-    <script src="/vendor/babel.min.js"></script>
-    <script src="/vendor/gsap.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Load app (JSX compiled in-browser) -->
+    <script type="text/babel" src="/src/data/demoData.jsx"></script>
+    <script type="text/babel" src="/src/components/PolaroidCard.jsx"></script>
+    <script type="text/babel" src="/src/components/Navbar.jsx"></script>
+    <script type="text/babel" src="/src/components/LandingPage.jsx"></script>
+    <script type="text/babel" src="/src/pages/ShootPage.jsx"></script>
+    <script type="text/babel" src="/src/pages/FeedPage.jsx"></script>
+    <script type="text/babel" src="/src/pages/FriendsPage.jsx"></script>
+    <script type="text/babel" src="/src/pages/AlbumPage.jsx"></script>
+    <script type="text/babel" src="/src/pages/ZoomPage.jsx"></script>
     <script type="text/babel" src="/src/App.jsx"></script>
     <script type="text/babel" src="/src/index.jsx"></script>
   </body>
