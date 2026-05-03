@@ -5,3 +5,4 @@ dist
 .DS_Store
 frontend/public/vendor
 reqs.txt
+backend/uploads
