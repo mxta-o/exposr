@@ -1,6 +1,10 @@
 # Exposr
 
-polaroid photo booth app
+social media app that promotes authenticity and intention when it comes to photo-taking.
+you're not allowed to edit or change photos. once you take the photo, its sealed until the end of the week
+similarly to a digital camera :)
+
+photos are displayed in the form of polaroids, with image processing to look grainy and vintage.
 
 ## Local setup (recommended)
 
